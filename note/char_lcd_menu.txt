@@ -14,3 +14,73 @@
 
 把设置功能全部规划清楚，对个别功能可以进行单独处理，但剩余功能尽量归类统一处理，这样才能在复杂度可控的情况下实现所有功能。
 
+
+20170119
+继电器菜单，菜单后显示设置值
+-1.ON/OFF  ON
+ 2.DAY     1234567
+ 3.TIME    xx:xx~xx:xx
+ 4.TEMP    <-40
+ 5.HUMI    <0
+
+1. ON/OFF 继电器使能开关，ON时，继电器按照2~5的配置工作，OFF时，继电器始终不工作。
+2. DAY 继电器工作日期触发条件，星期一到星期日每天都可配置，默认七天都不工作。
+3. TIME 每天工作时间触发条件，xx hour xx min ~ xx hour xx min，默认0hour1min~0hour0min，前者大于后者，禁止时间触发条件
+4. TEMP 温度触发条件，大于或小于某温度，温度设置范围-40 ~ 100，默认小于-40，即禁止温度触发条件
+5. HUMI 湿度触发条件，大于或小于某湿度，湿度设置范围  0 ~ 100，默认小于  0，即禁止湿度触发条件
+
+备注：条件2~5是相与的关系，即同时满足，才会触发工作，如果只想在某一条件满足时就让继电器工作，那么，把其他三个条件设置为都满足即可。其他组合条件可用类似方式实现。
+
+
+考虑到实际设置时，每个菜单的样式实在是难以统一，归类处理的思想并不易于实施。有的设置时分秒，有的设置时分，有的有区间符号“~”，有的则又没有，在保持个性化设置的基础上，归类是个强求的事情。与其痛苦归类，不如剖析事物本质，设置菜单的模式无非固定文字说明加上设置域显示，因此，我们可以把设置菜单抽象出来，固定说明，设置域，命令域。设置菜单通常占两行，第一行全部是固定说明，用字符串表示，第二行包含部分固定显示符号，若干设置域，两个命令域（N/Y），N用于取消设置，Y用于保存设置。典型菜单如下：
+SET SYSTEM TIME
+xx hour xx min xx sec    N Y
+每个设置域包含显示类型，显示位置，设置范围三个属性，每个设置菜单又包含一个设置域内存起始地址，设置域个数。
+
+struct SET_MENU_STRUCT {
+    string display_line1;
+    string display_line2;
+    unsigned char config_mem_ptr;
+    unsigned char config_field_num;
+}
+
+struct CONFIG_FIELD_INFO_STRUCT {
+    unsigned char display_mode;
+    unsigned char display_pos;
+    signed char set_min;
+    signed char set_max;
+    char *display_str0;
+    char *display_str1;
+}
+
+xdata unsigned char config_mem[64] = { 0,       // backlight time
+                                       0,       // menu time
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0        // 
+};
+
+code config_field_struct config_field_info[64] = { 0,       // backlight time
+                                       0,       // menu time
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0,       // 
+                                       0        // 
+};
